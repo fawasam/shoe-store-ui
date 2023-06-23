@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Wrapper from "./Wrapper";
 import Image from "next/image";
 import Link from "next/link";
@@ -16,6 +16,26 @@ const Header = () => {
   const [show, setShow] = useState("translate-y-0");
   const [lastScrollY, setLastScrollY] = useState(0);
   const [categories, setCategories] = useState(null);
+
+  const controlNavbar = () => {
+    if (window.scrollY > 200) {
+      if (window.scrollY > lastScrollY && !mobileMenu) {
+        setShow("-translate-y-[80px]");
+      } else {
+        setShow("shadow-sm");
+      }
+    } else {
+      setShow("translate-y-0");
+    }
+    setLastScrollY(window.scrollY);
+  };
+
+  useEffect(() => {
+    window.addEventListener("scroll", controlNavbar);
+    return () => {
+      window.removeEventListener("scroll", controlNavbar);
+    };
+  }, [lastScrollY]);
 
   return (
     <header
@@ -44,24 +64,27 @@ const Header = () => {
 
         <div className="flex items-center gap-2 text-black">
           {/* Icon start  */}
-          <div className="w-8 md:w-12 h-8 md:h-12 rounded-full flex justify-center items-center hover:bg-black/[0.5] cursor-pointer relative">
-            <IoMdHeartEmpty className="text-[19px] md:text-[24px]" />
-            <div className="h-[14px] md:h-[18px] min-w-[14px] md:min-w-[18px] rounded-full bg-red-500 absolute top-1 left-5 md:left-7 text-white text-[10px] md:text-[12px] justify-center items-center px-[2px] md:px-[5px] text-center">
-              21
+          <Link href="/ ">
+            <div className="w-8 md:w-12 h-8 md:h-12 rounded-full flex justify-center items-center hover:bg-black/[0.5] cursor-pointer relative">
+              <IoMdHeartEmpty className="text-[19px] md:text-[24px]" />
+              <div className="h-[14px] md:h-[18px] min-w-[14px] md:min-w-[18px] rounded-full bg-red-500 absolute top-1 left-5 md:left-7 text-white text-[10px] md:text-[12px] justify-center items-center px-[2px] md:px-[5px] text-center">
+                21
+              </div>
             </div>
-          </div>
+          </Link>
           {/* Icon end  */}
           {/* Icon start  */}
-          <div className="w-8 md:w-12 h-8 md:h-12 rounded-full flex justify-center items-center hover:bg-black/[0.5] cursor-pointer relative">
-            <BsCart className="text-[15px] md:text-[20px]" />
-            <div className="h-[14px] md:h-[18px] min-w-[14px] md:min-w-[18px] rounded-full bg-red-500 absolute top-1 left-5 md:left-7 text-white text-[10px] md:text-[12px] justify-center items-center px-[2px] md:px-[5px]">
-              5
+          <Link href="/cart">
+            <div className="w-8 md:w-12 h-8 md:h-12 rounded-full flex justify-center items-center hover:bg-black/[0.5] cursor-pointer relative">
+              <BsCart className="text-[15px] md:text-[20px]" />
+              <div className="h-[14px] md:h-[18px] min-w-[14px] md:min-w-[18px] rounded-full bg-red-500 absolute top-1 left-5 md:left-7 text-white text-[10px] md:text-[12px] justify-center items-center px-[2px] md:px-[5px]">
+                5
+              </div>
             </div>
-          </div>
+          </Link>
           {/* Icon end  */}
-
           {/* Mobile icon start  */}
-          <div className="w-8 md:w-12 h-8 md:h-12 rounded-full flex justify-center items-center hover:bg-black/[0.5] cursor-pointer relative -mr-2">
+          <div className="w-8 md:w-12 h-8 md:h-12 rounded-full flex md:hidden justify-center items-center hover:bg-black/[0.5] cursor-pointer relative -mr-2">
             {mobileMenu ? (
               <VscChromeClose
                 className="text-[16px]"

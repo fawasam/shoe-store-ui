@@ -6,7 +6,7 @@ export interface Wrapper {
 export interface Data {
   id?: number;
   name?: string;
-  url?: string | null;
+  url: string;
   subMenu?: boolean | undefined;
 }
 

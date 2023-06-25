@@ -17,7 +17,14 @@ const subMenuData = [
   { id: 4, name: "Football shoes", doc_count: 107 },
 ];
 
-const MobileMenu = ({ showCatMenu, setShowCatMenu, setMobileMenu }: Menu) => {
+const MobileMenu = ({
+  showCatMenu,
+  setShowCatMenu,
+  setMobileMenu,
+  categories,
+}: Menu) => {
+  // console.log(categories);
+
   return (
     <ul className=" flex flex-col md:hidden font-bold absolute top-[50px] left-0 w-full h-[calc(100vh-50px) bg-white border-t text-black ]">
       {data.map((item) => {
@@ -34,20 +41,34 @@ const MobileMenu = ({ showCatMenu, setShowCatMenu, setMobileMenu }: Menu) => {
                 </div>
                 {showCatMenu && (
                   <ul className="bg-black/[0.05] -mx-5 mt-4 -mb-4">
-                    {subMenuData.map((submenu) => {
-                      return (
-                        <Link
-                          href="/"
-                          key={submenu.id}
-                          onClick={() => setShowCatMenu(false)}
-                        >
-                          <li className="py-4 px-8 border-t flex justify-between">
-                            {submenu.name}
-                            <span className="opacity-50 text-sm"> 90</span>
-                          </li>
-                        </Link>
-                      );
-                    })}
+                    {categories?.map(
+                      ({
+                        attributes: c,
+                        id,
+                      }: {
+                        id: number;
+                        attributes: any;
+                      }) => {
+                        return (
+                          <Link
+                            href={`/category/${c?.slug}`}
+                            key={id}
+                            onClick={() => {
+                              setShowCatMenu(false);
+                              setMobileMenu(false);
+                            }}
+                          >
+                            <li className="py-4 px-8 border-t flex justify-between">
+                              {c.name}
+                              <span className="opacity-50 text-sm">
+                                {" "}
+                                {`(${c?.products.data.length})`}
+                              </span>
+                            </li>
+                          </Link>
+                        );
+                      }
+                    )}
                   </ul>
                 )}
               </li>

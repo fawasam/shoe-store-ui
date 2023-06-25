@@ -4,13 +4,14 @@ export interface Wrapper {
 }
 
 export interface Data {
-  id: number;
-  name: string;
-  url?: string;
+  id?: number;
+  name?: string;
+  url?: string | null;
   subMenu?: boolean | undefined;
 }
 
 export interface Menu {
+  categories?: any;
   showCatMenu?: boolean;
   setMobileMenu: (open: boolean) => void;
   setShowCatMenu: (open: boolean) => void;

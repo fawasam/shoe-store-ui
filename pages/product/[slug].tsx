@@ -1,30 +1,70 @@
 import { Wrapper } from "@/components";
 import ProductDetailsCarousal from "@/components/ProductDetailsCarousal";
 import RelatedProducts from "@/components/RelatedProducts";
-import React from "react";
+import { fetchDataFromApi } from "@/utils/api";
+import { getDiscountedPricePercentage } from "@/utils/helper";
+import { GetStaticPaths, GetStaticProps } from "next";
+import React, { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import { addToCart } from "@/store/cartSlice";
+import { useDispatch } from "react-redux";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-const ProductDetails = () => {
+const ProductDetails = ({ product, products }: any) => {
+  const [selectedSize, setSelectedSize] = useState();
+  const [showError, setShowError] = useState(false);
+  const p = product?.data[0]?.attributes;
+  const dispatch = useDispatch();
+
+  const notify = () => {
+    toast.success("Success, Check your cart!", {
+      position: "bottom-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "dark",
+    });
+  };
+
   return (
     <div className="w-full md:py-20">
+      <ToastContainer />
       <Wrapper>
         <div className=" flex flex-col lg:flex-row md:px-10 gap-[50px] lg:gap-[100px]">
           {/* left column start  */}
           <div className="w-full md:w-auto flex-[1.5] max-w-[600px] lf:max-w-full mx-auto lg:mx-0">
-            <ProductDetailsCarousal />
+            <ProductDetailsCarousal images={p?.image?.data} />
           </div>
           {/* left column end  */}
           {/* right column start  */}
           <div className="flex-[1] py-3 ">
             {/* product title  */}
-            <div className="text-[34px] font-semibold mb-2">
-              Jordan Retro 6 G
+            <div className="text-[34px] font-semibold mb-2 leading-tight">
+              {p.name}
             </div>
             {/* product subtitle  */}
-            <div className="text-lg font-semibold mb-5">
-              Men&apos;s Golf Shoes
-            </div>
+            <div className="text-lg font-semibold mb-5">{p.subtitle}</div>
             {/* product price  */}
-            <div className="text-lg font-semibold">MRP : ₹ 19 699.00</div>
+            <div className="flex items-center">
+              <p className="mr-2 text-lg font-semibold">
+                MRP: &#8377;{p?.price}
+              </p>
+              {p?.original_price && (
+                <>
+                  <p className="text-base font-medium line-through">
+                    &#8377;{p?.original_price}
+                  </p>
+                  <p className="ml-auto text-base font-medium text-green-500">
+                    {getDiscountedPricePercentage(p?.original_price, p?.price)}{" "}
+                    % off
+                  </p>
+                </>
+              )}
+            </div>
             <div className="text-md font-medium text-black/[0.5]">
               incl. of taxes
             </div>
@@ -41,50 +81,64 @@ const ProductDetails = () => {
               {/* heading end */}
 
               {/* size start  */}
-              <div className="grid grid-cols-3 gap-2">
-                <div className="border rounded-md text-center py-3 font-medium hover:border-black cursor-pointer">
-                  UK 6
-                </div>
-                <div className="border rounded-md text-center py-3 font-medium hover:border-black cursor-pointer">
-                  UK 6
-                </div>
-                <div className="border rounded-md text-center py-3 font-medium hover:border-black cursor-pointer">
-                  UK 6
-                </div>
-                <div className="border rounded-md text-center py-3 font-medium hover:border-black cursor-pointer">
-                  UK 6
-                </div>
-                <div className="border rounded-md text-center py-3 font-medium hover:border-black cursor-pointer">
-                  UK 6
-                </div>
-                <div className="border rounded-md text-center py-3 font-medium hover:border-black cursor-pointer">
-                  UK 6
-                </div>
-                <div className="border rounded-md text-center py-3 font-medium hover:border-black cursor-pointer">
-                  UK 6
-                </div>
-                <div className="border rounded-md text-center py-3 font-medium hover:border-black cursor-pointer">
-                  UK 6
-                </div>
-                <div className="border rounded-md text-center py-3 font-medium hover:border-black cursor-pointer">
-                  UK 6
-                </div>
-                <div className="border rounded-md text-center py-3 font-medium bg-black/[0.1] cursor-not-allowed opacity-50">
-                  UK 6
-                </div>
+              <div className="grid grid-cols-3 gap-2" id="sizesGrid">
+                {p?.size.data.map((item: any, i: number) => (
+                  <div
+                    className={`border rounded-md text-center py-3 font-medium hover:border-black  ${
+                      item.enabled
+                        ? "hover:border-black cursor-pointer"
+                        : " bg-black/[0.1] opacity-50 cursor-not-allowed"
+                    } ${selectedSize === item.size ? "border-black" : ""}`}
+                    key={i}
+                    onClick={() => {
+                      setSelectedSize(item.size);
+                      setShowError(false);
+                    }}
+                  >
+                    {item.size}
+                  </div>
+                ))}
               </div>
               {/* size end  */}
 
               {/* show error start  */}
-              <div className="text-red-600 mt-1">
-                Size selection is required
-              </div>
+              {showError && (
+                <div className="text-red-600 mt-1">
+                  Size selection is required
+                </div>
+              )}
               {/* show error end  */}
             </div>
             {/* product size range end  */}
 
             {/* ADD TO CART BUTTON START */}
-            <button className="w-full py-4 rounded-full bg-black text-white text-lg font-medium transition-transform active:scale-95 mb-3 hover:opacity-75">
+            <button
+              className="w-full py-4 rounded-full bg-black text-white text-lg font-medium transition-transform active:scale-95 mb-3 hover:opacity-75"
+              onClick={() => {
+                if (!selectedSize) {
+                  setShowError(true);
+                  document.getElementById("sizesGrid")?.scrollIntoView({
+                    block: "center",
+                    behavior: "smooth",
+                  });
+                } else {
+                  dispatch(
+                    addToCart({
+                      ...product?.data[0],
+                      selectedSize,
+                      oneQuantityPrice: p.price,
+                    })
+                  );
+                  // dispatch(
+                  //   addToCart({
+                  //     ...product?.data[0],
+                  //     selectedSize,
+                  //     oneQuantityPrice: p.price,
+                  //   }))
+                  notify();
+                }
+              }}
+            >
               Add to cart
             </button>
             {/* ADD TO CART BUTTON END */}
@@ -96,32 +150,51 @@ const ProductDetails = () => {
 
             <div>
               <div className="text-lg font-bold mb-5">Product Details</div>
-              <div className="text-md mb-5">
-                Lorem ipsum, dolor sit amet consectetur adipisicing elit. Harum
-                dolor fugiat, facilis maiores illo sequi adipisci aliquid nisi,
-                voluptatibus saepe consequuntur, odio odit dolorum facere eum
-                error tempora hic? Tempore! Lorem ipsum dolor sit, amet
-                consectetur adipisicing elit. Maxime voluptatem vel ratione!
-                Esse, deleniti! Id adipisci ipsa porro velit debitis! Autem esse
-                fugiat asperiores? Natus sapiente possimus vero iste asperiores.
-              </div>
-              <div className="text-md mb-5">
-                Lorem ipsum, dolor sit amet consectetur adipisicing elit. Harum
-                dolor fugiat, facilis maiores illo sequi adipisci aliquid nisi,
-                voluptatibus saepe consequuntur, odio odit dolorum facere eum
-                error tempora hic? Tempore! Lorem ipsum dolor sit, amet
-                consectetur adipisicing elit. Maxime voluptatem vel ratione!
-                Esse, deleniti! Id adipisci ipsa porro velit debitis! Autem esse
-                fugiat asperiores? Natus sapiente possimus vero iste asperiores.
+              <div className="markdown text-md mb-5  prose  ">
+                {/* //not working */}
+                <ReactMarkdown>{p.description}</ReactMarkdown>
               </div>
             </div>
           </div>
           {/* right column end  */}
         </div>
-        <RelatedProducts />
+        <RelatedProducts products={products} />
       </Wrapper>
     </div>
   );
 };
 
 export default ProductDetails;
+
+export const getStaticPaths: GetStaticPaths = async () => {
+  const products = await fetchDataFromApi("/api/products?populate=*");
+
+  const paths = products?.data?.map((p: any) => ({
+    params: {
+      slug: p.attributes.slug,
+    },
+  }));
+
+  return {
+    paths,
+    fallback: false,
+  };
+};
+
+export const getStaticProps: GetStaticProps = async ({
+  params: { slug },
+}: any) => {
+  const product = await fetchDataFromApi(
+    `/api/products?populate=*&filters[slug][$eq]=${slug}`
+  );
+
+  const products = await fetchDataFromApi(
+    `/api/products?populate=*&[filters][slug][$ne]=${slug}`
+  );
+  return {
+    props: {
+      product,
+      products,
+    },
+  };
+};
